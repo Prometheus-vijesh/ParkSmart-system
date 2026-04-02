@@ -1,7 +1,8 @@
 import os
 import sys
 
-os.environ["DATABASE_URL"] = "mysql+pymysql://avnadmin:AVNS_2IHtvlP-wtiKlyRiBjs@mysql-2789b5c6-parksmart.a.aivencloud.com:24283/defaultdb"
+if not os.environ.get("DATABASE_URL"):
+    raise RuntimeError("Please set the DATABASE_URL environment variable before running this script")
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from app.database import engine
