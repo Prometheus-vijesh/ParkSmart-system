@@ -114,7 +114,7 @@ function ActiveBookingCard({ booking }) {
         <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
           <div>
             <p className="text-slate-400 text-xs">In Time</p>
-            <p className="font-medium">{new Date(booking.in_time).toLocaleTimeString()}</p>
+            <p className="font-medium">{new Date(booking.in_time + 'Z').toLocaleTimeString()}</p>
           </div>
           <div>
             <p className="text-slate-400 text-xs">Duration</p>
@@ -137,7 +137,10 @@ function getGreeting() {
 }
 
 function getElapsed(inTimeStr) {
-  const mins = Math.floor((Date.now() - new Date(inTimeStr)) / 60000)
+  // Append 'Z' so JS treats the server's UTC timestamp correctly
+  const utcStr = inTimeStr.endsWith('Z') ? inTimeStr : inTimeStr + 'Z'
+  const mins = Math.floor((Date.now() - new Date(utcStr)) / 60000)
+  if (mins < 1) return 'Just now'
   if (mins < 60) return `${mins}m`
   return `${Math.floor(mins/60)}h ${mins%60}m`
 }
