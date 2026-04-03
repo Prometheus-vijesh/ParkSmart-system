@@ -92,7 +92,7 @@ export default function CheckoutPage() {
         <div className="card mt-4">
           {/* Booking summary */}
           <div className="mb-5 p-4 bg-slate-50 rounded-xl space-y-2 text-sm">
-            <Row label="In Time"  value={new Date((booking?.in_time) + 'Z').toLocaleString()} />
+            <Row label="In Time"  value={new Date(toUTC(booking?.in_time)).toLocaleString()} />
             <Row label="Duration" value={getDuration(booking?.in_time, null)} />
             <p className="text-xs text-slate-400 pt-1">
               ℹ️ Final amount calculated at checkout based on actual duration
@@ -140,10 +140,14 @@ function Row({ label, value, mono, green, large }) {
   )
 }
 
+function toUTC(str) {
+  if (!str) return new Date()
+  return str.includes('T') ? str : str.replace(' ', 'T') + 'Z'
+}
+
 function getDuration(inTime, outTime) {
-  const toUTC = t => t ? new Date(t.endsWith('Z') ? t : t + 'Z') : new Date()
-  const end  = outTime ? toUTC(outTime) : new Date()
-  const mins = Math.max(Math.floor((end - toUTC(inTime)) / 60000), 0)
+  const end  = outTime ? new Date(toUTC(outTime)) : new Date()
+  const mins = Math.max(Math.floor((end - new Date(toUTC(inTime))) / 60000), 0)
   if (mins < 1) return 'Just now'
   if (mins < 60) return `${mins} min`
   return `${Math.floor(mins / 60)}h ${mins % 60}m`
