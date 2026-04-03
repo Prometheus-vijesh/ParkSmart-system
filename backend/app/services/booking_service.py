@@ -1,9 +1,13 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from fastapi import HTTPException
-from datetime import datetime
+from datetime import datetime, timedelta
 from app.models import Booking, ParkingSlot, Pricing, Coupon, Vehicle, Transaction
 from app.schemas.booking import BookingCreate
+
+# Store times in IST (UTC+5:30) so frontend can display directly without conversion
+def now_ist():
+    return datetime.utcnow() + timedelta(hours=5, minutes=30)
 
 def create_booking(db: Session, user_id: int, payload: BookingCreate) -> Booking:
     vehicle = db.query(Vehicle).filter(Vehicle.id == payload.vehicle_id, Vehicle.user_id == user_id).first()
@@ -51,6 +55,7 @@ def create_booking(db: Session, user_id: int, payload: BookingCreate) -> Booking
         user_id=user_id,
         coupon_id=coupon_id,
         status="active",
+        in_time=now_ist(),
     )
     db.add(booking)
     db.commit()
@@ -66,7 +71,7 @@ def checkout_booking(db: Session, booking_id: int, user_id: int, payment_method:
     if not booking:
         raise HTTPException(status_code=404, detail="Active booking not found")
 
-    out_time = datetime.now()
+    out_time = now_ist()
     delta = out_time - booking.in_time
     hours = max(delta.total_seconds() / 3600, 0.5)  # Minimum 30 minutes
 

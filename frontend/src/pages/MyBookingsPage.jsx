@@ -24,7 +24,7 @@ export default function MyBookingsPage() {
 
   const rows = bookings.map(b => [
     <span className="font-mono text-xs">BKG-{b.id}</span>,
-    new Date(toUTC(b.in_time)).toLocaleDateString('en-IN', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }),
+    parseIST(b.in_time).toLocaleDateString('en-IN', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }),
     b.out_time ? getDuration(b.in_time, b.out_time) : '—',
     b.total_amount != null ? `₹${b.total_amount}` : '—',
     <span className={STATUS_BADGE[b.status]}>{b.status}</span>,
@@ -56,13 +56,13 @@ export default function MyBookingsPage() {
   )
 }
 
-function toUTC(str) {
+function parseIST(str) {
   if (!str) return new Date()
-  return str.includes('T') ? str : str.replace(' ', 'T') + 'Z'
+  return new Date(str.replace(' ', 'T'))
 }
 
 function getDuration(inTime, outTime) {
-  const mins = Math.max(Math.floor((new Date(toUTC(outTime)) - new Date(toUTC(inTime))) / 60000), 0)
+  const mins = Math.max(Math.floor((parseIST(outTime) - parseIST(inTime)) / 60000), 0)
   if (mins < 60) return `${mins}m`
   return `${Math.floor(mins / 60)}h ${mins % 60}m`
 }

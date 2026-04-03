@@ -114,7 +114,7 @@ function ActiveBookingCard({ booking }) {
         <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
           <div>
             <p className="text-slate-400 text-xs">In Time</p>
-            <p className="font-medium">{new Date(toUTC(booking.in_time)).toLocaleTimeString()}</p>
+            <p className="font-medium">{fmtTime(booking.in_time)}</p>
           </div>
           <div>
             <p className="text-slate-400 text-xs">Duration</p>
@@ -136,14 +136,19 @@ function getGreeting() {
   return 'evening'
 }
 
-// MySQL returns '2026-04-03 19:21:42' (space, no Z). We need '2026-04-03T19:21:42Z' for correct UTC parsing.
-function toUTC(str) {
+// Backend stores IST directly — just parse the MySQL string and display as-is
+function parseIST(str) {
   if (!str) return new Date()
-  return str.includes('T') ? str : str.replace(' ', 'T') + 'Z'
+  // MySQL format: '2026-04-03 19:42:00' — replace space with T, NO 'Z' (already IST)
+  return new Date(str.replace(' ', 'T'))
+}
+
+function fmtTime(str) {
+  return parseIST(str).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
 }
 
 function getElapsed(inTimeStr) {
-  const mins = Math.floor((Date.now() - new Date(toUTC(inTimeStr))) / 60000)
+  const mins = Math.floor((Date.now() - parseIST(inTimeStr)) / 60000)
   if (mins < 1) return 'Just now'
   if (mins < 60) return `${mins}m`
   return `${Math.floor(mins/60)}h ${mins%60}m`
